@@ -19,15 +19,14 @@ public class EchoSeverReactor implements Runnable {
     }
 
     private EchoSeverReactor() throws IOException {
+        InetSocketAddress address = new InetSocketAddress(19000);
         serverSocketChannel = ServerSocketChannel.open();
-
-        ServerSocket serverSocket = serverSocketChannel.socket();
         serverSocketChannel.configureBlocking(false);
 
-        InetSocketAddress address = new InetSocketAddress(19000);
+        ServerSocket serverSocket = serverSocketChannel.socket();
+        serverSocket.bind(address);
 
         selector = Selector.open();
-        serverSocket.bind(address);
 
         SelectionKey acceptKey = serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
         acceptKey.attach(new AcceptHandler());

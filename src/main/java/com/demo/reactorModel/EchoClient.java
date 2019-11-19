@@ -29,31 +29,33 @@ public class EchoClient {
 
         System.out.println("客户端启动成功");
 
-        Processor processor = new Processor(socketChannel);
-        new Thread(processor).start();
+        Selector selector = Selector.open();
+        SelectionKey key = socketChannel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+
+        ReadProcessor readProcessor = new ReadProcessor(selector, socketChannel);
+        WriteProcessor writeProcessor = new WriteProcessor(selector, socketChannel);
+
+        new Thread(readProcessor).start();
+        new Thread(writeProcessor).start();
     }
 
-    class Processor implements Runnable {
+    class ReadProcessor implements Runnable {
         Selector selector;
         SocketChannel socketChannel;
 
-        Processor(SocketChannel channel) throws IOException {
-            selector = Selector.open();
-            socketChannel = channel;
-
-            socketChannel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+        ReadProcessor(Selector selector, SocketChannel socketChannel) {
+            this.selector = selector;
+            this.socketChannel = socketChannel;
         }
 
+        @Override
         public void run() {
             try {
                 while (!Thread.interrupted()) {
                     selector.select();
                     Set<SelectionKey> selected = selector.selectedKeys();
-                    Iterator<SelectionKey> iterator = selected.iterator();
 
-                    while (iterator.hasNext()) {
-                        SelectionKey key = iterator.next();
-
+                    for (SelectionKey key : selected) {
                         if (key.isReadable()) {
                             ByteBuffer buffer = ByteBuffer.allocate(1024);
                             SocketChannel channel = (SocketChannel) key.channel();
@@ -66,7 +68,35 @@ public class EchoClient {
 
                                 buffer.clear();
                             }
-                        } else if (key.isWritable()) {
+                        }
+                    }
+
+                    selected.clear();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    class WriteProcessor implements Runnable {
+        Selector selector;
+        SocketChannel socketChannel;
+
+        WriteProcessor(Selector selector, SocketChannel socketChannel) {
+            this.selector = selector;
+            this.socketChannel = socketChannel;
+        }
+
+        @Override
+        public void run() {
+            try {
+                while (!Thread.interrupted()) {
+                    selector.select();
+                    Set<SelectionKey> selected = selector.selectedKeys();
+
+                    for (SelectionKey key : selected) {
+                        if (key.isWritable()) {
                             ByteBuffer buffer = ByteBuffer.allocate(1024);
                             Scanner scanner = new Scanner(System.in);
                             SocketChannel channel = (SocketChannel) key.channel();

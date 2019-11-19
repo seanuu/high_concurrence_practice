@@ -15,9 +15,9 @@ public class EchoHandler implements Runnable {
     private static final int RECEIVING = 0, SENDING = 1;
     int state = RECEIVING;
 
-    EchoHandler(Selector selector, SocketChannel sk) throws IOException {
-        socketChannel = sk;
-        sk.configureBlocking(false);
+    EchoHandler(Selector selector, SocketChannel channel) throws IOException {
+        socketChannel = channel;
+        channel.configureBlocking(false);
 
         selectionKey = socketChannel.register(selector, 0);
         selectionKey.attach(this);
