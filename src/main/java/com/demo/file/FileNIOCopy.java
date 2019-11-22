@@ -26,7 +26,7 @@ public class FileNIOCopy {
         File srcFile = new File(srcPath);
         File destFile = new File(destPath);
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         CharsetDecoder decoder = charset.newDecoder();
 
         if (!destFile.exists()) {

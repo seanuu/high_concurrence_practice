@@ -37,10 +37,8 @@ public class EchoSeverReactor implements Runnable {
             try {
                 if (selector.select() > 0) {
                     Set<SelectionKey> selected = selector.selectedKeys();
-                    Iterator<SelectionKey> iterator = selected.iterator();
 
-                    while (iterator.hasNext()) {
-                        SelectionKey key = iterator.next();
+                    for (SelectionKey key : selected) {
                         dispatch(key);
                     }
 
